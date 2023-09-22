@@ -1,48 +1,62 @@
 import sys
 import random
-from joblib import dump, load
+import openpyxl
 
+#from joblib import dump, load
 from sklearn.model_selection import train_test_split  
 from sklearn.metrics import accuracy_score, f1_score
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.ensemble import GradientBoostingClassifier
 
-INTENTS = {
-    "news": {
-        "examples": ['новости', 'что нового', 'погода', 'курс доллара'],
-        'response': ['Новости: нового ничего, погода класс, курс доллара гавно!', 'Не стоит интересоваться новостями!']
-    },
-    "hello": {
-        "examples": ['Привет', 'прив', 'здарова'],
-        'response': ['Ну здарова']
-    },
-    "how_are_u": {
-        "examples": ['Как', 'дела', 'ты как', 'что нового'],
-        'response': ['Супер', 'Круто', 'огонь']
-    }
-}
+
+INTENTS = {}
+
+# Define variable to load the wookbook
+wookbook = openpyxl.load_workbook("data.xlsx")
+# Define variable to read the active sheet:
+worksheet = wookbook.active
+# Iterate the loop to read the cell values
+for row in range(2, worksheet.max_row):
+    intent = worksheet.cell(row=row, column=2).value.lower()
+    question = worksheet.cell(row=row, column=3).value.lower()
+    answer = worksheet.cell(row=row, column=4).value.lower()
+    if (not INTENTS.get(intent)):
+        INTENTS[intent] = []
+    
+    INTENTS[intent].append({"question": question, "answer": answer})
 
 
+XIntension = []
+YIntension = []
 
-X = []
-Y = []
-
+XAnswer = []
+YAnswer = []
 
 for intent in INTENTS:
-    examples = INTENTS[intent]['examples']
-    for example in examples:
-        X.append(example)
-        Y.append(intent)
+    questions = [item['question'] for item in INTENTS[intent]]
+    for question in questions:
+        XIntension.append(question)
+        YIntension.append(intent)
+
+for intent in INTENTS:
+    for data in INTENTS[intent]:
+        XAnswer.append(data['question'])
+        YAnswer.append(data['answer'])
 
 
 vectorizer = CountVectorizer()
-vectorizer.fit(X)
+vectorizer.fit(XIntension)
 #dump(vectorizer, 'vector.joblib')
-vecX = vectorizer.transform(X)
+vecX = vectorizer.transform(XIntension)
 
+vectorizer.fit(XAnswer)
+vecXanswer = vectorizer.transform(XAnswer)
 
-model = GradientBoostingClassifier()
-model.fit(vecX, Y)
+modelIntent = GradientBoostingClassifier()
+modelIntent.fit(vecX, YIntension)
+
+modelAnswer = GradientBoostingClassifier()
+modelAnswer.fit(vecXanswer, YAnswer)
 
 #dump(model, "intents.joblib")
 
@@ -51,6 +65,13 @@ model.fit(vecX, Y)
 #vectorizer = load("vector.joblib")
 
 if __name__ == "__main__":
+    print(sys.argv[1])
     if len (sys.argv) > 1:
-        predictions = model.predict(vectorizer.transform([sys.argv[1]]))
-        print (random.choice(INTENTS[predictions[0]]["response"]))
+        predictions = modelIntent.predict(vectorizer.transform([sys.argv[1].lower().replace(" ", "")]))
+        intent = predictions[0]
+
+        print(intent)
+
+        predictions = modelAnswer.predict(vectorizer.transform([sys.argv[1].lower().replace(" ", "")]))
+
+        print(predictions[0])

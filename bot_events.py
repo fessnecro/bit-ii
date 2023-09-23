@@ -38,18 +38,29 @@ def init(bot: Bot, router: Router):
         # Распознаем речь из аудио файла
         with audio_file as source:
             audio_data = recognizer.record(source)
-            text = recognizer.recognize_google(audio_data, language = 'ru')
+            question = recognizer.recognize_google(audio_data, language = 'ru')
         
         # Выводим текст
-        print(text)
+        print(question)
         os.remove(file_on_disk)  # Удаление временного файла
 
-        answer = bot_ii.get_answer(text)
-        text = "Категория: " + answer['category'] + "\r\n\r\n" + answer['answer']
-        await message.answer(text)
+        answer = bot_ii.get_answer(question)
+        
+        text = answer['answer']
+
+        parts = question.strip().split(" ")
+        print(parts)
+        if (len(parts) > 1):
+            await message.answer(text)
+        else:
+            await message.answer("Пожалуйста, опишите вас вопрос более подробнее")      
 
     @router.message()
     async def callback_how_its_works(message: Message) -> None:
-        answer = bot_ii.get_answer(message.text)
-        text = "Категория: " + answer['category'] + "\r\n\r\n" + answer['answer']
-        await message.answer(text)
+        parts = message.text.split(" ")
+        if (len(parts) > 1):
+            answer = bot_ii.get_answer(message.text)
+            text = answer['answer']
+            await message.answer(text)
+        else:
+            await message.answer("Пожалуйста, опишите вас вопрос более подробнее")  

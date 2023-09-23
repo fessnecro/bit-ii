@@ -8,15 +8,14 @@ modelAnswer = load("answers.joblib")
 vectorizerIntent = load("vector-intents.joblib")
 vectorizerAnswer = load("vector-answers.joblib")
 
-xy = load("xy.joblib")
-
-
 def get_answer(question):
 
-    vector = vectorizerAnswer.transform([question.lower()])
+    vector = vectorizerIntent.transform([question])
 
     predictions = modelIntent.predict(vector)
     category = predictions[0]
+
+    vector = vectorizerAnswer.transform([question])
 
     predictions = modelAnswer.predict(vector)
     answer = predictions[0]

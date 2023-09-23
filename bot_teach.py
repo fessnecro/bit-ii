@@ -30,20 +30,14 @@ XAnswer = []
 YAnswer = []
 
 for intent in INTENTS:
-    questions = [item['question'] for item in INTENTS[intent]]
-    for question in questions:
-        XIntension.append(question)
+    for data in INTENTS[intent]:
+        XIntension.append(data['question'] + " " + data['answer'])
         YIntension.append(intent)
 
 for intent in INTENTS:
     for data in INTENTS[intent]:
-        XAnswer.append(data['question'])
+        XAnswer.append(data['question'] + " " + data['answer'])
         YAnswer.append(data['answer'])
-
-
-X_train, X_test, y_train, y_test = train_test_split(XAnswer, YAnswer)
-
-dump({"X_train": X_train, "X_test": X_test, "y_train": y_train, "y_test": y_test}, 'xy.joblib')
 
 vectorizer = TfidfVectorizer(analyzer='char_wb', ngram_range=(2,3), max_df=0.8)
 vectorizer.fit(XIntension)

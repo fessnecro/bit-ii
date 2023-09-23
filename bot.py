@@ -14,12 +14,13 @@ load_dotenv()
 TOKEN = getenv("BOT_TOKEN")
 router = Router()
 
-bot_events.init(router)
+
 
 async def main() -> None:
     dp = Dispatcher()
     dp.include_router(router)
     bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
+    bot_events.init(bot, router)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
